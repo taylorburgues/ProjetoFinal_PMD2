@@ -1,21 +1,12 @@
 import 'package:flutter/material.dart';
-import './listaCoord.dart';
+import 'lista.dart';
 //import 'insere.dart';
 
 void main() {
   runApp(MaterialApp(
-    title: "projeto bomba",
+    title: "projeto final",
     debugShowCheckedModeBanner: false,
     home: Lista()
   ));
 }
 
-/*import 'package:flutter/material.dart';
-import './listaCoord.dart';
-
-void main() {
-  runApp(MaterialApp(
-    title: 'Listas',
-    home: listaCoord(),
-  ));
-}*/

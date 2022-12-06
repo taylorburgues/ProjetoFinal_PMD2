@@ -1,12 +1,10 @@
-import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'ctcdata.dart';
-import 'package:http/http.dart' as http;
-
 import 'detalhes.dart';
 import 'insere.dart';
-
+import 'ctcdata.dart';
+import 'package:http/http.dart' as http;
+import 'dart:async';
+import 'dart:convert';
 
 // criar uma lista para puxar os dados da api
 Future<List<ctcData>> fetchData() async {
@@ -31,7 +29,7 @@ class Lista extends StatefulWidget {
 }
 
 class _ListaState extends State<Lista> {
-  // criar aqui
+  // criar a lista
   late Future<List<ctcData>> futureData;
 
   @override
@@ -40,11 +38,24 @@ class _ListaState extends State<Lista> {
     futureData = fetchData();
   }
 
+  delete(String id) async {
+    // remove aluno da api
+    var res = http.delete(
+      Uri.parse('https://www.slmm.com.br/CTC/delete.php?id=${id}'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+    );
+
+    return res;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: const Text("listagem"),
+          title: const Text("Listagem"),
+          backgroundColor: Color.fromARGB(25, 250, 90, 20),
         ),
         body: Container(
           padding: EdgeInsets.all(10),
@@ -62,19 +73,37 @@ class _ListaState extends State<Lista> {
                                 trailing: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
+                                    // nome do aluno
                                     Text(data[index].nome),
-                                    //Text(data[index].data),
-                                    Icon(Icons.bolt_rounded),
+                                    // botao para apagá-lo da api
+                                    IconButton(
+                                      onPressed: () {
+                                        // passa o id do aluno correspondente para função delete
+                                        delete(data[index].id.toString());
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const Lista()),
+                                        );
+                                      },
+                                      icon: Icon(Icons.delete_rounded),
+                                    ),
+                                    // botao para mostrar os detalhes do aluno
                                     IconButton(
                                       onPressed: () {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
                                               builder: (context) =>
-                                                  const Detalhes()),
+                                              // passa o id correspondente ao aluno selecionado
+                                                  Detalhes(
+                                                      value: data[index]
+                                                          .id
+                                                          .toString())),
                                         );
                                       },
-                                      icon: Icon(Icons.favorite),
+                                      icon: Icon(Icons.edit),
                                     )
                                   ],
                                 )));
@@ -86,99 +115,17 @@ class _ListaState extends State<Lista> {
                 return CircularProgressIndicator();
               }),
         ),
+        // botao para pagina de inserir aluno
         floatingActionButton: FloatingActionButton(
-          backgroundColor: const Color(0xff03dac6),
+          backgroundColor: Color.fromARGB(255, 207, 3, 218),
           foregroundColor: Colors.black,
           onPressed: () {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const Insere()),
             );
-            // Respond to button press
           },
           child: Icon(Icons.add),
         ));
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-/*
-import 'dart:async';
-import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'ctcdata.dart';
-import 'package:http/http.dart' as http;
-
-Future<List<ctcData>> fetchData() async {
-  final response = await http.get(Uri.parse('https://www.slmm.com.br/CTC/getLista.php'),
-      );
-  print('depois get');
-  if (response.statusCode == 200) {
-    print(response.body);
-    List jsonResponse = json.decode(response.body);
-    List<ctcData> ctcList = <ctcData>[];
-
-    return jsonResponse.map((data) => ctcData.fromJson(data)).toList();
-  } else {
-    throw Exception("Erro inesperado....");
-  }
-}
-
-class listaCoord extends StatefulWidget {
-  const listaCoord({super.key});
-
-  @override
-  State<listaCoord> createState() => _listaCoordState();
-}
-
-class _listaCoordState extends State<listaCoord> {
-  late Future<List<ctcData>> futureData;
-
-  @override
-  void initState() {
-    print('fetchData');
-    super.initState();
-    futureData = fetchData();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(title: Text('Lista')),
-        body: Center(
-            child: FutureBuilder<List<ctcData>>(
-                future: futureData,
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    List<ctcData> data = snapshot.data!;
-                    return ListView.builder(
-                        itemCount: data.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          return Card(
-                              child: ListTile(
-                                  title: Text(data[index].nome),
-                                  trailing: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.bolt_rounded),
-                                      IconButton(
-                                          onPressed: () {},
-                                          icon: Icon(Icons.favorite))
-                                    ],
-                                  )));
-                        });
-                  }
-                  return Text(snapshot.data.toString());
-                })));
-  }
-}
-*/

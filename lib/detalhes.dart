@@ -3,49 +3,66 @@ import 'ctcdata.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'dart:convert';
+import 'lista.dart';
 
-// criar uma Detalhes para puxar os dados da api
-Future<List<ctcData>> fetchData() async {
+
+Future<List<ctcData>> fetchDataUser(String value) async {
   var response = await http.get(
-      Uri.parse("https://www.slmm.com.br/CTC/getDetalhe.php?id="+"id"),
+      Uri.parse("https://www.slmm.com.br/CTC/getDetalhe.php?id=${value}"),
       headers: {"Accept": "application/json"});
 
   if (response.statusCode == 200) {
     // print(response.body);
     List jsonResponse = json.decode(response.body);
-    return jsonResponse.map((data) => new ctcData.fromJson(data)).toList();
+    return jsonResponse.map((dados) => new ctcData.fromJson(dados)).toList();
   } else {
     throw Exception('Erro inesperado....');
   }
 }
 
 class Detalhes extends StatefulWidget {
-  const Detalhes({Key? key}) : super(key: key);
+  // recebe id do aluno
+  const Detalhes({
+    Key? key,
+    required this.value,
+  }) : super(key: key);
+
+  final String value;
 
   @override
   State<Detalhes> createState() => _DetalhesState();
 }
 
 class _DetalhesState extends State<Detalhes> {
-  // criar aqui
-  late Future<List<ctcData>> futureData;
+  late Future<List<ctcData>> futureDataUser;
 
   @override
   void initState() {
     super.initState();
-    futureData = fetchData();
+    futureDataUser = fetchDataUser(widget.value);
+  }
+
+  delete(String id) async {
+    var res = http.delete(
+      Uri.parse('https://www.slmm.com.br/CTC/delete.php?id=${id}'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+    );
+
+    return res;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: const Text("Detalhesgem"),
+          title: Text("${widget.value}"),
         ),
         body: Container(
           padding: EdgeInsets.all(10),
           child: FutureBuilder<List<ctcData>>(
-              future: futureData,
+              future: futureDataUser,
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   List<ctcData> data = snapshot.data!;
@@ -58,13 +75,22 @@ class _DetalhesState extends State<Detalhes> {
                                 trailing: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Text(data[index].nome),
-                                    //Text(data[index].data),
-                                    Icon(Icons.bolt_rounded),
+                                    // exibe todos os dados do aluno
+                                    Text(data[index].id.toString()+"   "),
+                                    Text(data[index].nome+"   "),
+                                    Text(data[index].data+"   "),
                                     IconButton(
-                                      onPressed: () {},
-                                      icon: Icon(Icons.favorite),
-                                    )
+                                      onPressed: () {
+                                        delete(data[index].id.toString());
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const Lista()),
+                                        );
+                                      },
+                                      icon: Icon(Icons.delete),
+                                    ),
                                   ],
                                 )));
                       });
@@ -74,6 +100,6 @@ class _DetalhesState extends State<Detalhes> {
                 // by default
                 return CircularProgressIndicator();
               }),
-        ));
+        ),);
   }
 }
